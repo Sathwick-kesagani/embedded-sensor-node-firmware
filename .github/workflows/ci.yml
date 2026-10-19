@@ -1,0 +1,25 @@
+name: Firmware tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Unit tests (Unity)
+        run: make test
+      - name: Unit tests with AddressSanitizer + UBSan
+        run: make sanitize
+      - name: Build host simulation and run link tests
+        run: make clean && make link
+      - name: Publish link test report
+        if: always()
+        run: cat results/link_report.md >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: link-test-results
+          path: results/
